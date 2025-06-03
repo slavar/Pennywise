@@ -21,8 +21,16 @@ export default function Home() {
   const [performance, setPerformance] = useState<PerformanceEntry[]>([]);
   const [gain, setGain] = useState<number>(0);
 
-  const riskLabels: Array<'low' | 'mid' | 'high'> = ['low', 'mid', 'high'];
-  const horizonLabels: Array<'short' | 'mid' | 'long'> = ['short', 'mid', 'long'];
+  const riskOptions: Array<{ value: 'low' | 'mid' | 'high'; label: string }> = [
+    { value: 'low', label: 'Low' },
+    { value: 'mid', label: 'Mid' },
+    { value: 'high', label: 'High' },
+  ];
+  const horizonOptions: Array<{ value: 'short' | 'mid' | 'long'; label: string }> = [
+    { value: 'short', label: 'Short (1-2 years)' },
+    { value: 'mid', label: 'Mid (2-5 years)' },
+    { value: 'long', label: 'Long (5-10 years)' },
+  ];
   const yearOptions = [1, 3, 5];
 
   useEffect(() => {
@@ -43,45 +51,84 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Pennywise Investment Portfolio</title>
+        <title>Pennywise Investment Portfolio Recommendation</title>
       </Head>
-      <main style={{ maxWidth: 800, margin: '0 auto', padding: '2rem' }}>
-        <h1>Pennywise Investment Portfolio Recommendation</h1>
-        <section>
-          <label>Risk Preference: {risk}</label>
-          <input
-            type="range"
-            min={0}
-            max={2}
-            step={1}
-            value={riskLabels.indexOf(risk)}
-            onChange={e => setRisk(riskLabels[+e.target.value])}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            {riskLabels.map(label => (
-              <span key={label}>{label}</span>
-            ))}
+      <main style={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
+        <h1 style={{ whiteSpace: 'nowrap', margin: '0 0 1rem' }}>
+          Pennywise Investment Portfolio Recommendation
+        </h1>
+        <section style={{ display: 'flex', alignItems: 'stretch', gap: '2rem', marginBottom: '2rem' }}>
+          <div style={{ flex: 1 }}>
+            <section style={{ marginBottom: '2rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+                Risk Preference: {riskOptions.find(opt => opt.value === risk)!.label}
+              </label>
+              <input
+                type="range"
+                min={0}
+                max={riskOptions.length - 1}
+                step={1}
+                value={riskOptions.findIndex(opt => opt.value === risk)}
+                onChange={e => setRisk(riskOptions[+e.target.value].value)}
+                style={{ width: '100%', marginBottom: '0.5rem' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                {riskOptions.map(opt => (
+                  <span key={opt.value}>{opt.label}</span>
+                ))}
+              </div>
+            </section>
+            <section>
+              <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+                Investment Horizon: {horizonOptions.find(opt => opt.value === horizon)!.label}
+              </label>
+              <input
+                type="range"
+                min={0}
+                max={horizonOptions.length - 1}
+                step={1}
+                value={horizonOptions.findIndex(opt => opt.value === horizon)}
+                onChange={e => setHorizon(horizonOptions[+e.target.value].value)}
+                style={{ width: '100%', marginBottom: '0.5rem' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                {horizonOptions.map(opt => (
+                  <span key={opt.value}>{opt.label}</span>
+                ))}
+              </div>
+            </section>
+          </div>
+          <div style={{ flex: '0 0 30%' }}>
+          <h2 style={{ fontWeight: 'normal', fontSize: '1rem', whiteSpace: 'nowrap', marginBottom: '0.5rem' }}>
+            Portfolio Breakdown
+          </h2>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ccc' }}>
+                    Ticker
+                  </th>
+                  <th style={{ textAlign: 'right', borderBottom: '1px solid #ccc' }}>
+                    Allocation (%)
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {portfolio.map(({ ticker, weight }) => (
+                  <tr key={ticker}>
+                    <td>{ticker}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      {(weight * 100).toFixed(2)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
-        <section>
-          <label>Investment Horizon: {horizon}</label>
-          <input
-            type="range"
-            min={0}
-            max={2}
-            step={1}
-            value={horizonLabels.indexOf(horizon)}
-            onChange={e => setHorizon(horizonLabels[+e.target.value])}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            {horizonLabels.map(label => (
-              <span key={label}>{label}</span>
-            ))}
-          </div>
-        </section>
-        <section>
-          <h2>
-            Performance ({years} year{years > 1 ? 's' : ''}) –{' '}
+        <section style={{ marginBottom: '2rem' }}>
+          <h2 style={{ marginBottom: '1rem' }}>
+            Historic Performance ({years} year{years > 1 ? 's' : ''}):{' '}
             <span style={{ color: gainColor }}>{gain.toFixed(2)}%</span>
           </h2>
           <div style={{ marginBottom: '1rem' }}>
@@ -107,7 +154,7 @@ export default function Home() {
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={performance}>
               <XAxis dataKey="date" />
-              <YAxis domain={["auto", "auto"]} />
+              <YAxis domain={['auto', 'auto']} />
               <CartesianGrid strokeDasharray="3 3" />
               <Tooltip />
               <Line
@@ -118,35 +165,6 @@ export default function Home() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </section>
-        <section>
-          <h2>Recommended Portfolio</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th
-                  style={{ textAlign: 'left', borderBottom: '1px solid #ccc' }}
-                >
-                  Ticker
-                </th>
-                <th
-                  style={{ textAlign: 'right', borderBottom: '1px solid #ccc' }}
-                >
-                  Weight
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {portfolio.map(({ ticker, weight }) => (
-                <tr key={ticker}>
-                  <td>{ticker}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    {(weight * 100).toFixed(2)}%
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </section>
       </main>
     </>
