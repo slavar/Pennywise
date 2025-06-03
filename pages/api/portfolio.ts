@@ -44,9 +44,9 @@ export default async function handler(
       }, 0);
       return { date, value };
     });
-    const gain = ((
-      performance[performance.length - 1].value / performance[0].value - 1
-    ) * 100);
+    const gain = (
+      (performance[performance.length - 1].value / performance[0].value - 1) * 100
+    );
     return res.status(200).json({ portfolio, performance, gain });
   } catch (e: any) {
     res.status(500).json({ error: e.message || 'Internal error' });
