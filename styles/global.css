@@ -29,3 +29,13 @@ body {
     gap: 1rem;
   }
 }
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  --color-background: #1e1e1e;
+  --color-text: #f4f5f7;
+  --color-primary: #3399ff;
+  --color-secondary: #aab2bd;
+  --color-gain: #57bb8a;
+  --color-loss: #e06666;
+}

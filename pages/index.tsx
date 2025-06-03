@@ -14,6 +14,16 @@ type PortfolioItem = { ticker: string; weight: number };
 type PerformanceEntry = { date: string; value: number };
 
 export default function Home() {
+  // Theme state: light or dark, persisted in localStorage
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    typeof window !== 'undefined' && localStorage.getItem('theme') === 'dark'
+      ? 'dark'
+      : 'light'
+  );
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
   const [risk, setRisk] = useState<'low' | 'mid' | 'high'>('mid');
   const [horizon, setHorizon] = useState<'short' | 'mid' | 'long'>('mid');
   const [years, setYears] = useState<number>(5);
@@ -90,9 +100,50 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <main style={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
-        <h1 style={{ whiteSpace: 'nowrap', margin: '0 0 1rem' }}>
-          Pennywise Investment Portfolio Recommendation
-        </h1>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            marginBottom: '1rem',
+          }}
+        >
+          <label
+            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginRight: '1rem' }}
+          >
+            <span style={{ marginRight: '0.5rem' }}>Light</span>
+            <div
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              style={{
+                width: '40px',
+                height: '20px',
+                backgroundColor: theme === 'dark' ? 'var(--color-primary)' : '#ccc',
+                borderRadius: '12px',
+                position: 'relative',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s',
+              }}
+            >
+              <div
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  backgroundColor: '#fff',
+                  borderRadius: '50%',
+                  position: 'absolute',
+                  top: '2px',
+                  left: theme === 'dark' ? 'calc(100% - 18px)' : '2px',
+                  transition: 'left 0.2s',
+                }}
+              />
+            </div>
+            <span style={{ marginLeft: '0.5rem' }}>Dark</span>
+          </label>
+          <h1 style={{ whiteSpace: 'nowrap', margin: 0 }}>
+            Pennywise Investment Portfolio Recommendation
+          </h1>
+        </div>
         <section
           className="top-row"
           style={{ display: 'flex', alignItems: 'stretch', gap: '2rem', marginBottom: '2rem' }}
@@ -206,7 +257,12 @@ export default function Home() {
                 }}
               />
             </div>
-            <span>Forecast</span>
+            <span
+              title="Fixed-return approach"
+              style={{ cursor: 'help' }}
+            >
+              Forecast
+            </span>
           </label>
           <h2 style={{ marginBottom: '1rem' }}>
             {chartType === 'historical' ? (
@@ -263,6 +319,17 @@ export default function Home() {
             </LineChart>
           </ResponsiveContainer>
         </section>
+
+        <footer style={{
+          textAlign: 'center',
+          fontSize: '0.8rem',
+          color: 'var(--color-secondary)',
+          marginTop: '2rem',
+          paddingTop: '1rem',
+          borderTop: '1px solid var(--color-secondary)'
+        }}>
+          Disclaimer: Pennywise is not a financial advisor. The information presented here is for educational purposes only and does not constitute financial advice. Please consult a professional before making any investment decisions.
+        </footer>
       </main>
     </>
   );
