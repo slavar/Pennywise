@@ -1,0 +1,25 @@
+{
+  "name": "pennywise",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "instructions": "bash instructions.sh"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "yahoo-finance2": "^3.3.5",
+    "date-fns": "^2.29.3",
+    "recharts": "^2.1.9"
+  },
+  "devDependencies": {
+    "typescript": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest"
+  }
+}
