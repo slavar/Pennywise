@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import yahooFinance from 'yahoo-finance2';
 import { subYears } from 'date-fns';
-import { getPortfolio, PortfolioItem } from '../../lib/portfolio';
+import { getPortfolio, PortfolioItem, categories, Category } from '../../lib/portfolio';
 
 type PerformanceEntry = { date: string; value: number };
 
@@ -14,12 +14,21 @@ export default async function handler(
   } | { error: string }>
 ) {
   try {
-    const { risk = 'mid', horizon = 'mid', years = '1' } = req.query;
+    const { risk = 'mid', horizon = 'mid', years = '1', tickers } = req.query;
     const numYears = parseInt(years as string, 10) || 1;
-    const portfolio = getPortfolio(
-      risk as any,
-      horizon as any
-    );
+
+    // Parse optional ticker overrides in order: bonds, etfs, stocks
+    let overrideTickers: Partial<Record<Category, readonly string[]>> | undefined;
+    if (typeof tickers === 'string') {
+      const parts = tickers.split(',');
+      if (parts.length === categories.length) {
+        overrideTickers = {};
+        categories.forEach((cat, idx) => {
+          overrideTickers![cat] = [parts[idx]];
+        });
+      }
+    }
+    const portfolio = getPortfolio(risk as any, horizon as any, overrideTickers);
     const endDate = new Date();
     const startDate = subYears(endDate, numYears);
     // Create a new instance of the Yahoo Finance client

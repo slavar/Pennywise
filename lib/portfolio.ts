@@ -10,19 +10,37 @@ export const horizonAdjustment = {
   long: { bonds: -0.1, stocks: 0.1 },
 } as const;
 
+/** Available asset categories */
+export const categories = ['bonds', 'etfs', 'stocks'] as const;
+export type Category = typeof categories[number];
+
+/** Fixed list of available ticker options per asset category */
+export const categoryTickerOptions = {
+  bonds: ['BND', 'AGG', 'TLT'],
+  etfs: ['VOO', 'SPY', 'IVV'],
+  stocks: ['AAPL', 'MSFT', 'GOOGL'],
+} as const;
+
+/** Default selected ticker for each category (first option) */
 export const categoryTickers = {
-  bonds: ['BND'],
-  etfs: ['VOO'],
-  stocks: ['AAPL'],
+  bonds: [categoryTickerOptions.bonds[0]],
+  etfs: [categoryTickerOptions.etfs[0]],
+  stocks: [categoryTickerOptions.stocks[0]],
 } as const;
 
 export type RiskLevel = keyof typeof riskAllocationMap;
 export type Horizon = keyof typeof horizonAdjustment;
-export type PortfolioItem = { ticker: string; weight: number };
+/** One line item of the portfolio: category, ticker symbol, and allocation weight */
+export type PortfolioItem = { category: Category; ticker: string; weight: number };
 
+/**
+ * Build a portfolio allocation (ticker + weight) by risk/horizon,
+ * optionally overriding the selected tickers per category.
+ */
 export function getPortfolio(
   risk: RiskLevel,
-  horizon: Horizon
+  horizon: Horizon,
+  overrideTickers?: Partial<Record<Category, readonly string[]>>
 ): PortfolioItem[] {
   const base = riskAllocationMap[risk];
   const adjust = horizonAdjustment[horizon];
@@ -33,10 +51,11 @@ export function getPortfolio(
   } as const;
 
   const portfolio: PortfolioItem[] = [];
-  (Object.keys(alloc) as Array<keyof typeof alloc>).forEach(category => {
-    const tickers = categoryTickers[category];
+  categories.forEach(category => {
+    const tickers = overrideTickers?.[category] ?? categoryTickers[category];
     tickers.forEach(ticker => {
       portfolio.push({
+        category,
         ticker,
         weight: alloc[category] / tickers.length,
       });

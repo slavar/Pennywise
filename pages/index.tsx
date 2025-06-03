@@ -10,7 +10,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-type PortfolioItem = { ticker: string; weight: number };
+import { categoryTickerOptions, categories, Category, PortfolioItem } from '../lib/portfolio';
+
+// PerformanceEntry: date and portfolio value time-series
 type PerformanceEntry = { date: string; value: number };
 
 export default function Home() {
@@ -30,6 +32,23 @@ export default function Home() {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [performance, setPerformance] = useState<PerformanceEntry[]>([]);
   const [gain, setGain] = useState<number>(0);
+  // Selected index into categoryTickerOptions for each asset category
+  const [selectedIndexes, setSelectedIndexes] = useState<Record<Category, number>>(
+    () => Object.fromEntries(categories.map(cat => [cat, 0])) as Record<Category, number>
+  );
+  // Handlers to cycle through available ticker options per category
+  const handlePrevTicker = (cat: Category) =>
+    setSelectedIndexes(prev => ({
+      ...prev,
+      [cat]:
+        (prev[cat] - 1 + categoryTickerOptions[cat].length) %
+        categoryTickerOptions[cat].length,
+    }));
+  const handleNextTicker = (cat: Category) =>
+    setSelectedIndexes(prev => ({
+      ...prev,
+      [cat]: (prev[cat] + 1) % categoryTickerOptions[cat].length,
+    }));
 
   const riskOptions: Array<{ value: 'low' | 'mid' | 'high'; label: string }> = [
     { value: 'low', label: 'Low' },
@@ -47,15 +66,27 @@ export default function Home() {
   );
 
   const tickerDescriptions: Record<string, string> = {
-    BND: 'Vanguard Total Bond Market ETF — a broad-based bond ETF',
+    BND: 'Vanguard Total Bond Market ETF — broad-based bond exposure',
+    AGG: 'iShares Core U.S. Aggregate Bond ETF — broad U.S. bond exposure',
+    TLT: 'iShares 20+ Year Treasury Bond ETF — long-term U.S. Treasuries',
     VOO: 'Vanguard S&P 500 ETF — broad U.S. equity exposure',
-    AAPL: 'Apple Inc. — a large-cap growth stock example',
+    SPY: 'SPDR S&P 500 ETF Trust — broad U.S. equity exposure',
+    IVV: 'iShares Core S&P 500 ETF — broad U.S. equity exposure',
+    AAPL: 'Apple Inc. — a large-cap technology stock example',
+    MSFT: 'Microsoft Corporation — a large-cap technology stock example',
+    GOOGL: 'Alphabet Inc. — a large-cap technology stock example',
   };
 
   useEffect(() => {
     async function fetchData() {
+      // Build override tickers string in order of categories
+      const overrideParam = categories
+        .map(cat => categoryTickerOptions[cat][selectedIndexes[cat]])
+        .join(',');
       const res = await fetch(
-        `/api/portfolio?risk=${risk}&horizon=${horizon}&years=${years}`
+        `/api/portfolio?risk=${risk}&horizon=${horizon}&years=${years}&tickers=${encodeURIComponent(
+          overrideParam
+        )}`
       );
       const data = await res.json();
       setPortfolio(data.portfolio);
@@ -63,15 +94,21 @@ export default function Home() {
       setGain(data.gain);
     }
     fetchData();
-  }, [risk, horizon, years]);
+  }, [risk, horizon, years, selectedIndexes]);
 
   const gainColor = gain >= 0 ? 'var(--color-gain)' : 'var(--color-loss)';
 
   // Fixed expected return forecast model: weighted by each ticker's assumed return
   const tickerExpectedReturns: Record<string, number> = {
     BND: 0.03,
+    AGG: 0.025,
+    TLT: 0.04,
     VOO: 0.07,
+    SPY: 0.07,
+    IVV: 0.07,
     AAPL: 0.1,
+    MSFT: 0.1,
+    GOOGL: 0.1,
   };
   const portfolioExpectedReturn = portfolio.reduce(
     (sum, p) => sum + p.weight * (tickerExpectedReturns[p.ticker] || 0),
@@ -204,15 +241,41 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody>
-                {portfolio.map(({ ticker, weight }) => (
-                  <tr key={ticker}>
-                    <td>
+                {portfolio.map(({ category, ticker, weight }) => (
+                  <tr key={`${category}-${ticker}`}> 
+                    <td style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <button
+                        onClick={() => handlePrevTicker(category)}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          padding: 0,
+                          marginRight: '0.25rem',
+                        }}
+                      >
+                        ◀
+                      </button>
                       <span
                         title={tickerDescriptions[ticker]}
-                        style={{ cursor: 'help' }}
+                        style={{ cursor: 'help', margin: '0 0.25rem' }}
                       >
                         {ticker}
                       </span>
+                      <button
+                        onClick={() => handleNextTicker(category)}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          padding: 0,
+                          marginLeft: '0.25rem',
+                        }}
+                      >
+                        ▶
+                      </button>
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       {(weight * 100).toFixed(2)}%
