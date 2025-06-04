@@ -15,10 +15,12 @@ Investment Portfolio Recommendation Web Application.
 - Yahoo Finance integration via `yahoo-finance2`.
 - Recharts for data visualization.
 - date-fns for date handling.
+- Clerk for authentication and user management.
 
 ## Setup & Installation
 
 ```bash
+npm install @clerk/nextjs@latest
 npm install
 ```
 

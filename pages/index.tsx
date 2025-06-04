@@ -89,9 +89,16 @@ export default function Home() {
         )}`
       );
       const data = await res.json();
-      setPortfolio(data.portfolio);
-      setPerformance(data.performance);
-      setGain(data.gain);
+      if ('error' in data) {
+        console.error(data.error);
+        setPortfolio([]);
+        setPerformance([]);
+        setGain(0);
+        return;
+      }
+      setPortfolio(data.portfolio ?? []);
+      setPerformance(data.performance ?? []);
+      setGain(data.gain ?? 0);
     }
     fetchData();
   }, [risk, horizon, years, selectedIndexes]);
@@ -103,12 +110,12 @@ export default function Home() {
     BND: 0.03,
     AGG: 0.025,
     TLT: 0.04,
-    VOO: 0.07,
-    SPY: 0.07,
-    IVV: 0.07,
-    AAPL: 0.1,
-    MSFT: 0.1,
-    GOOGL: 0.1,
+  VOO: 0.07,
+  SPY: 0.068,
+  IVV: 0.069,
+  AAPL: 0.10,
+  MSFT: 0.095,
+  GOOGL: 0.11,
   };
   const portfolioExpectedReturn = portfolio.reduce(
     (sum, p) => sum + p.weight * (tickerExpectedReturns[p.ticker] || 0),

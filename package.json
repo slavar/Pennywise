@@ -9,17 +9,18 @@
     "instructions": "bash instructions.sh"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.20.2",
+    "date-fns": "^2.29.3",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "yahoo-finance2": "^3.3.5",
-    "date-fns": "^2.29.3",
-    "recharts": "^2.1.9"
+    "recharts": "^2.1.9",
+    "yahoo-finance2": "^3.3.5"
   },
   "devDependencies": {
-    "typescript": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
-    "@types/react-dom": "latest"
+    "@types/react-dom": "latest",
+    "typescript": "latest"
   }
 }
