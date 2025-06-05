@@ -1,5 +1,6 @@
+ 'use client';
+
 import React, { useState, useEffect } from 'react';
-import Head from 'next/head';
 import {
   LineChart,
   Line,
@@ -9,13 +10,14 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from 'recharts';
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 import { categoryTickerOptions, categories, Category, PortfolioItem } from '../lib/portfolio';
 
 // PerformanceEntry: date and portfolio value time-series
 type PerformanceEntry = { date: string; value: number };
 
-export default function Home() {
+export default function Page() {
   // Theme state: light or dark, persisted in localStorage
   const [theme, setTheme] = useState<'light' | 'dark'>(() =>
     typeof window !== 'undefined' && localStorage.getItem('theme') === 'dark'
@@ -138,60 +140,76 @@ export default function Home() {
     forecastGain >= 0 ? 'var(--color-gain)' : 'var(--color-loss)';
 
   return (
-    <>
-      <Head>
-        <title>Pennywise Investment Portfolio Recommendation</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-      <main style={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            marginBottom: '1rem',
-          }}
+    <main style={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          marginBottom: '1rem',
+        }}
+      >
+        <label
+          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginRight: '1rem' }}
         >
-          <label
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginRight: '1rem' }}
+          <span style={{ marginRight: '0.5rem' }}>Light</span>
+          <div
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            style={{
+              width: '40px',
+              height: '20px',
+              backgroundColor: theme === 'dark' ? 'var(--color-primary)' : '#ccc',
+              borderRadius: '12px',
+              position: 'relative',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+            }}
           >
-            <span style={{ marginRight: '0.5rem' }}>Light</span>
             <div
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
               style={{
-                width: '40px',
-                height: '20px',
-                backgroundColor: theme === 'dark' ? 'var(--color-primary)' : '#ccc',
-                borderRadius: '12px',
-                position: 'relative',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s',
+                width: '16px',
+                height: '16px',
+                backgroundColor: '#fff',
+                borderRadius: '50%',
+                position: 'absolute',
+                top: '2px',
+                left: theme === 'dark' ? 'calc(100% - 18px)' : '2px',
+                transition: 'left 0.2s',
               }}
-            >
-              <div
-                style={{
-                  width: '16px',
-                  height: '16px',
-                  backgroundColor: '#fff',
-                  borderRadius: '50%',
-                  position: 'absolute',
-                  top: '2px',
-                  left: theme === 'dark' ? 'calc(100% - 18px)' : '2px',
-                  transition: 'left 0.2s',
-                }}
-              />
-            </div>
-            <span style={{ marginLeft: '0.5rem' }}>Dark</span>
-          </label>
-          <h1 style={{ whiteSpace: 'nowrap', margin: 0 }}>
-            Pennywise Investment Portfolio Recommendation
-          </h1>
+            />
+          </div>
+          <span style={{ marginLeft: '0.5rem' }}>Dark</span>
+        </label>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <SignedOut>
+            <SignInButton>Sign In</SignInButton>
+            <SignUpButton>Sign Up</SignUpButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
         </div>
-        <section
-          className="top-row"
-          style={{ display: 'flex', alignItems: 'stretch', gap: '2rem', marginBottom: '2rem' }}
-        >
+      </div>
+
+      
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          marginBottom: '1rem',
+        }}
+      >
+        <h1 style={{ whiteSpace: 'nowrap', margin: 0 }}>
+          Pennywise Investment Portfolio Recommendation
+        </h1>
+      </div>
+      <section
+        className="top-row"
+        style={{ display: 'flex', alignItems: 'stretch', gap: '2rem', marginBottom: '2rem' }}
+      >
           <div style={{ flex: 1 }}>
             <section style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem' }}>
@@ -401,6 +419,5 @@ export default function Home() {
           Disclaimer: Pennywise is not a financial advisor. The information presented here is for educational purposes only and does not constitute financial advice. Please consult a professional before making any investment decisions.
         </footer>
       </main>
-    </>
   );
 }
