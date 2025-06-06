@@ -34,6 +34,13 @@ export default function Page() {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [performance, setPerformance] = useState<PerformanceEntry[]>([]);
   const [gain, setGain] = useState<number>(0);
+  // Custom portfolio analysis state (logged-in users only)
+  const [showUploadDialog, setShowUploadDialog] = useState<boolean>(false);
+  const [uploadText, setUploadText] = useState<string>('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState<boolean>(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [customPortfolio, setCustomPortfolio] = useState<PortfolioItem[] | null>(null);
   // Selected index into categoryTickerOptions for each asset category
   const [selectedIndexes, setSelectedIndexes] = useState<Record<Category, number>>(
     () => Object.fromEntries(categories.map(cat => [cat, 0])) as Record<Category, number>
@@ -80,6 +87,10 @@ export default function Page() {
   };
 
   useEffect(() => {
+    if (customPortfolio) {
+      // Skip default data fetch when using custom portfolio
+      return;
+    }
     async function fetchData() {
       // Build override tickers string in order of categories
       const overrideParam = categories
@@ -103,7 +114,71 @@ export default function Page() {
       setGain(data.gain ?? 0);
     }
     fetchData();
-  }, [risk, horizon, years, selectedIndexes]);
+  }, [risk, horizon, years, selectedIndexes, customPortfolio]);
+
+  const compressImage = async (file: File): Promise<Blob> => {
+    const imgBitmap = await createImageBitmap(file);
+    const MAX_WIDTH = 600;
+    const scale = Math.min(1, MAX_WIDTH / imgBitmap.width);
+    const width = imgBitmap.width * scale;
+    const height = imgBitmap.height * scale;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(imgBitmap, 0, 0, width, height);
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Image compression failed'));
+        },
+        'image/jpeg',
+        0.2
+      );
+    });
+  };
+
+  const handleAnalyze = async () => {
+    setAnalysisLoading(true);
+    setAnalysisError(null);
+    try {
+      let payload: { text?: string; fileData?: string; fileType?: string };
+      if (uploadFile) {
+        let fileToRead: Blob = uploadFile;
+        if (uploadFile.type.startsWith('image/')) {
+          fileToRead = await compressImage(uploadFile);
+        }
+        const reader = new FileReader();
+        const dataUrl: string = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(fileToRead);
+        });
+        payload = { fileData: dataUrl.split(',')[1], fileType: fileToRead.type };
+      } else {
+        payload = { text: uploadText };
+      }
+      const response = await fetch('/api/portfolio-analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...payload, years }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setCustomPortfolio(data.portfolio);
+        setPerformance(data.performance);
+        setGain(data.gain);
+        setShowUploadDialog(false);
+      } else {
+        setAnalysisError(data.error || 'Analysis failed');
+      }
+    } catch (err: any) {
+      setAnalysisError(err.message || 'Analysis failed');
+    } finally {
+      setAnalysisLoading(false);
+    }
+  };
 
   const gainColor = gain >= 0 ? 'var(--color-gain)' : 'var(--color-loss)';
 
@@ -266,51 +341,171 @@ export default function Page() {
                 </tr>
               </thead>
               <tbody>
-                {portfolio.map(({ category, ticker, weight }) => (
-                  <tr key={`${category}-${ticker}`}> 
-                    <td style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <button
-                        onClick={() => handlePrevTicker(category)}
-                        style={{
-                          border: 'none',
-                          background: 'transparent',
-                          cursor: 'pointer',
-                          fontSize: '1rem',
-                          padding: 0,
-                          marginRight: '0.25rem',
-                        }}
-                      >
-                        ◀
-                      </button>
-                      <span
-                        title={tickerDescriptions[ticker]}
-                        style={{ cursor: 'help', margin: '0 0.25rem' }}
-                      >
-                        {ticker}
-                      </span>
-                      <button
-                        onClick={() => handleNextTicker(category)}
-                        style={{
-                          border: 'none',
-                          background: 'transparent',
-                          cursor: 'pointer',
-                          fontSize: '1rem',
-                          padding: 0,
-                          marginLeft: '0.25rem',
-                        }}
-                      >
-                        ▶
-                      </button>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      {(weight * 100).toFixed(2)}%
-                    </td>
-                  </tr>
-                ))}
+                {!customPortfolio
+                  ? portfolio.map(({ category, ticker, weight }) => (
+                      <tr key={`${category}-${ticker}`}> 
+                        <td style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <button
+                            onClick={() => handlePrevTicker(category)}
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              fontSize: '1rem',
+                              padding: 0,
+                              marginRight: '0.25rem',
+                            }}
+                          >
+                            ◀
+                          </button>
+                          <span
+                            title={tickerDescriptions[ticker]}
+                            style={{ cursor: 'help', margin: '0 0.25rem' }}
+                          >
+                            {ticker}
+                          </span>
+                          <button
+                            onClick={() => handleNextTicker(category)}
+                            style={{
+                              border: 'none',
+                              background: 'transparent',
+                              cursor: 'pointer',
+                              fontSize: '1rem',
+                              padding: 0,
+                              marginLeft: '0.25rem',
+                            }}
+                          >
+                            ▶
+                          </button>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          {(weight * 100).toFixed(2)}%
+                        </td>
+                      </tr>
+                    ))
+                  : customPortfolio.map(({ ticker, weight }) => (
+                      <tr key={ticker}>
+                        <td style={{ textAlign: 'left' }}>{ticker}</td>
+                        <td style={{ textAlign: 'right' }}>
+                          {(weight * 100).toFixed(2)}%
+                        </td>
+                      </tr>
+                    ))}
               </tbody>
             </table>
+            <SignedIn>
+              <div style={{ marginTop: '0.5rem' }}>
+                <button
+                  onClick={() => setShowUploadDialog(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-primary)',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    padding: 0,
+                  }}
+                >
+                  Upload Existing Portfolio
+                </button>
+              </div>
+            </SignedIn>
           </div>
         </section>
+
+        {showUploadDialog && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 1000,
+            }}
+          >
+            <div
+              style={{
+                background: '#fff',
+                padding: '2rem',
+                borderRadius: '8px',
+                width: '90%',
+                maxWidth: '500px',
+                maxHeight: '90%',
+                overflowY: 'auto',
+              }}
+            >
+              <h3>Upload Existing Portfolio</h3>
+              <div
+                onPaste={(e) => {
+                  const files = Array.from(e.clipboardData.files);
+                  if (files.length > 0) {
+                    setUploadFile(files[0]);
+                    e.preventDefault();
+                  }
+                }}
+                style={{
+                  border: '1px dashed #ccc',
+                  padding: '1rem',
+                  marginBottom: '1rem',
+                }}
+              >
+                {uploadFile ? (
+                  <p>File loaded: {uploadFile.name}</p>
+                ) : (
+                  <textarea
+                    value={uploadText}
+                    onChange={(e) => setUploadText(e.target.value)}
+                    placeholder="Paste text here"
+                    style={{ width: '100%', minHeight: '100px' }}
+                  />
+                )}
+                {!uploadFile && (
+                  <input
+                    type="file"
+                    accept=".pdf, image/*"
+                    onChange={(e) =>
+                      e.target.files && setUploadFile(e.target.files[0])
+                    }
+                    style={{ marginTop: '0.5rem' }}
+                  />
+                )}
+              </div>
+              {analysisError && (
+                <p style={{ color: 'red' }}>{analysisError}</p>
+              )}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '1rem',
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setShowUploadDialog(false);
+                    setUploadText('');
+                    setUploadFile(null);
+                    setAnalysisError(null);
+                  }}
+                  disabled={analysisLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAnalyze}
+                  disabled={analysisLoading || (!uploadFile && !uploadText)}
+                >
+                  {analysisLoading ? 'Analyzing...' : 'Analyze'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <section style={{ marginBottom: '2rem' }}>
           <label style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
             <span>Historic</span>
