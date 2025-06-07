@@ -31,7 +31,7 @@ export const categoryTickers = {
 export type RiskLevel = keyof typeof riskAllocationMap;
 export type Horizon = keyof typeof horizonAdjustment;
 /** One line item of the portfolio: category, ticker symbol, and allocation weight */
-export type PortfolioItem = { category: Category; ticker: string; weight: number };
+export type PortfolioItem = { category: Category; ticker: string; weight: number; shares?: number; price?: number };
 
 /**
  * Build a portfolio allocation (ticker + weight) by risk/horizon,

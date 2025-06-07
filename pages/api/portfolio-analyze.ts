@@ -41,9 +41,9 @@ export default async function handler(
       {
         role: 'system',
         content:
-          'Extract portfolio tickers and allocation percentages from the user input. ' +
-          'Return only a JSON array of objects [{ "ticker": "AAPL", "weight": 0.25 }, ...]. ' +
-          'Ticker symbols should be uppercase. Weights should be decimal fractions that sum to 1; normalize weights if necessary. ' +
+          'Extract portfolio tickers, number of shares, and current ticker prices from the user input. ' +
+          'Return only a JSON array of objects [{ "ticker": "AAPL", "shares": 100, "price": 150.0 }, ...]. ' +
+          'Ticker symbols should be uppercase. Shares and prices should be numeric values. ' +
           'If input is an image, it will be provided as an image_url block; use vision capabilities to extract the data.',
       },
       { role: 'user', content: inputText },
@@ -53,7 +53,7 @@ export default async function handler(
     if (!text && fileData && fileType) {
       const imageDataUri = `data:${fileType};base64,${fileData}`;
       messages[1].content = [
-        { type: 'text', text: 'Please extract the tickers and weights from the image.' },
+        { type: 'text', text: 'Please extract the tickers, number of shares, and current ticker prices from the image.' },
         { type: 'image_url', image_url: { url: imageDataUri } },
       ];
     }
@@ -74,7 +74,8 @@ export default async function handler(
       throw new Error('No response from OpenAI');
     }
 
-    let parsed: Array<{ ticker: string; weight: number }>;
+    // Parse tickers, share counts, and optional prices from model output
+    let parsed: Array<{ ticker: string; shares: number; price?: number }>;
     try {
       parsed = JSON.parse(content.trim());
     } catch {
@@ -83,19 +84,20 @@ export default async function handler(
       parsed = JSON.parse(match[0]);
     }
 
-    const portfolio: PortfolioItem[] = parsed.map(({ ticker, weight }) => {
+    // Build initial portfolio items with share counts
+    const sharesPortfolio = parsed.map(({ ticker, shares }) => {
       const category =
         categories.find(cat =>
           (categoryTickerOptions[cat] as readonly string[]).includes(ticker)
         ) || categories[2];
-      return { category, ticker, weight };
+      return { category, ticker, shares };
     });
 
     const endDate = new Date();
     const startDate = subYears(endDate, numYears);
     const client = new yahooFinance();
     const rawData = await Promise.all(
-      portfolio.map(p =>
+      sharesPortfolio.map(p =>
         client.historical(p.ticker, {
           period1: startDate,
           period2: endDate,
@@ -108,9 +110,11 @@ export default async function handler(
     }
 
     const dates = rawData[0].map(d => d.date.toISOString().slice(0, 10));
+
+    // Calculate performance time-series based on shares and closing prices
     const performance = dates.map((date, idx) => {
-      const value = portfolio.reduce(
-        (sum, p, ti) => sum + (rawData[ti][idx]?.close || 0) * p.weight,
+      const value = sharesPortfolio.reduce(
+        (sum, p, ti) => sum + (rawData[ti][idx]?.close || 0) * p.shares,
         0
       );
       return { date, value };
@@ -118,6 +122,28 @@ export default async function handler(
     const gain =
       (performance[performance.length - 1].value / performance[0].value - 1) *
       100;
+
+    // Compute weights based on shares × current price (each ticker's latest closing price)
+    const currentValues = sharesPortfolio.map((p, i) => {
+      const history = rawData[i];
+      const lastIdxForTicker = history.length - 1;
+      const price = lastIdxForTicker >= 0 ? history[lastIdxForTicker]?.close ?? 0 : 0;
+      return price * p.shares;
+    });
+    const totalValue = currentValues.reduce((sum, v) => sum + v, 0);
+    const portfolio: PortfolioItem[] = sharesPortfolio.map((p, i) => {
+      const history = rawData[i];
+      const lastIdxForTicker = history.length - 1;
+      const price = lastIdxForTicker >= 0 ? history[lastIdxForTicker]?.close ?? 0 : 0;
+      return {
+        category: p.category,
+        ticker: p.ticker,
+        shares: p.shares,
+        price,
+        weight: totalValue > 0 ? currentValues[i] / totalValue : 0,
+      };
+    });
+
     return res.status(200).json({ portfolio, performance, gain });
   } catch (e: any) {
     return res.status(500).json({ error: e.message || 'Internal error' });
