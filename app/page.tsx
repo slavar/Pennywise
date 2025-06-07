@@ -256,6 +256,17 @@ export default function Page() {
           </div>
           <span style={{ marginLeft: '0.5rem' }}>Dark</span>
         </label>
+        <a
+          href="/learn"
+          style={{
+            color: 'var(--color-primary)',
+            textDecoration: 'underline',
+            fontWeight: 'bold',
+            marginLeft: '1rem',
+          }}
+        >
+          Financial Literacy Basics
+        </a>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <SignedOut>
             <SignInButton>Sign In</SignInButton>
@@ -267,7 +278,7 @@ export default function Page() {
         </div>
       </div>
 
-      
+
       <div
         style={{
           display: 'flex',
