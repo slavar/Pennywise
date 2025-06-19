@@ -16,6 +16,7 @@ Investment Portfolio Recommendation Web Application.
 - Recharts for data visualization.
 - date-fns for date handling.
 - Clerk for authentication and user management.
+- Vercel Analytics for real-time traffic insights.
 
 ## Setup & Installation
 
