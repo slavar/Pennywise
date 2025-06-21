@@ -8,6 +8,7 @@ Investment Portfolio Recommendation Web Application.
 - Portfolio comprised of ETFs, shares, and bonds.
 - Friendly UX/UI with risk and horizon sliders.
 - Historic portfolio performance graph (1, 3, and 5 years) with gain/loss indicators.
+- Persist custom portfolio analyses in MongoDB for logged-in users.
 
 ## Tech Stack
 
@@ -17,6 +18,7 @@ Investment Portfolio Recommendation Web Application.
 - date-fns for date handling.
 - Clerk for authentication and user management.
 - Vercel Analytics for real-time traffic insights.
+- MongoDB (via Vercel integration) for persisting custom portfolio data.
 
 ## Setup & Installation
 

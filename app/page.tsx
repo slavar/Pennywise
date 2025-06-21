@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from 'recharts';
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 
 import { categoryTickerOptions, categories, Category, PortfolioItem } from '../lib/portfolio';
 
@@ -41,6 +41,8 @@ export default function Page() {
   const [analysisLoading, setAnalysisLoading] = useState<boolean>(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [customPortfolio, setCustomPortfolio] = useState<PortfolioItem[] | null>(null);
+  const [savedChecked, setSavedChecked] = useState(false);
+  const { isLoaded: isUserLoaded, isSignedIn } = useUser();
   // Selected index into categoryTickerOptions for each asset category
   const [selectedIndexes, setSelectedIndexes] = useState<Record<Category, number>>(
     () => Object.fromEntries(categories.map(cat => [cat, 0])) as Record<Category, number>
@@ -87,12 +89,31 @@ export default function Page() {
   };
 
   useEffect(() => {
-    if (customPortfolio) {
-      // Skip default data fetch when using custom portfolio
+    if (!isUserLoaded || savedChecked) return;
+    if (!isSignedIn) {
+      setSavedChecked(true);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await fetch('/api/portfolio-saved');
+        if (res.ok) {
+          const data = await res.json();
+          setCustomPortfolio(data.portfolio ?? []);
+          setPerformance(data.performance ?? []);
+          setGain(data.gain ?? 0);
+        }
+      } catch {
+      }
+      setSavedChecked(true);
+    })();
+  }, [isUserLoaded, isSignedIn, savedChecked]);
+
+  useEffect(() => {
+    if (!savedChecked || customPortfolio) {
       return;
     }
     async function fetchData() {
-      // Build override tickers string in order of categories
       const overrideParam = categories
         .map(cat => categoryTickerOptions[cat][selectedIndexes[cat]])
         .join(',');
@@ -114,7 +135,7 @@ export default function Page() {
       setGain(data.gain ?? 0);
     }
     fetchData();
-  }, [risk, horizon, years, selectedIndexes, customPortfolio]);
+  }, [risk, horizon, years, selectedIndexes, customPortfolio, savedChecked]);
 
   const compressImage = async (file: File): Promise<Blob> => {
     const imgBitmap = await createImageBitmap(file);

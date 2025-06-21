@@ -6,6 +6,9 @@ import "../styles/global.css";
 export const metadata: Metadata = {
   title: "Pennywise Investment Portfolio Recommendation",
   description: "Investment portfolio recommendation app with authentication",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

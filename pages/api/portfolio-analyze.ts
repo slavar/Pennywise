@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { subYears } from 'date-fns';
 import yahooFinance from 'yahoo-finance2';
 import { categories, categoryTickerOptions, PortfolioItem } from '../../lib/portfolio';
+import clientPromise from '../../lib/mongodb';
+import { getAuth } from '@clerk/nextjs/server';
 
 /** One line item of the time-series performance */
 type PerformanceEntry = { date: string; value: number };
@@ -19,6 +21,10 @@ export default async function handler(
     return res.status(405).end();
   }
   try {
+    const { userId } = getAuth(req);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     const { text, fileData, fileType, years } = req.body;
     const numYears = parseInt(years as string, 10) || 1;
 
@@ -142,6 +148,16 @@ export default async function handler(
         price,
         weight: totalValue > 0 ? currentValues[i] / totalValue : 0,
       };
+    });
+
+    const mongoClient = await clientPromise;
+    const db = mongoClient.db();
+    await db.collection('portfolios').insertOne({
+      userId,
+      createdAt: new Date(),
+      portfolio,
+      performance,
+      gain,
     });
 
     return res.status(200).json({ portfolio, performance, gain });
