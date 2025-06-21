@@ -472,6 +472,9 @@ export default function Page() {
               }}
             >
               <h3>Upload Existing Portfolio</h3>
+              <p style={{ margin: '0.5rem 0 1rem', color: '#555' }}>
+                You can upload a screenshot of your portfolio from your investment application.
+              </p>
               <div
                 onPaste={(e) => {
                   const files = Array.from(e.clipboardData.files);
