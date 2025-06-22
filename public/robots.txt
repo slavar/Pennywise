@@ -1,0 +1,12 @@
+# Allow all crawlers access to all public pages
+User-agent: *
+Allow: /
+
+# Disallow crawling of internal resources and API routes
+Disallow: /api/
+Disallow: /_next/
+Disallow: /static/
+
+# Sitemap location (update to your production domain)
+Sitemap: https://pennywise.app/sitemap.xml
+Host: https://pennywise.app

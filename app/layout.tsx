@@ -4,8 +4,9 @@ import { Analytics } from "@vercel/analytics/next";
 import "../styles/global.css";
 
 export const metadata: Metadata = {
-  title: "Pennywise Investment Portfolio Recommendation",
-  description: "Investment portfolio recommendation app with authentication",
+  title: "Pennywise: Your Investment Guide",
+  description:
+    "Pennywise helps you build personalized ETF, stock & bond portfolios by balancing your risk tolerance and investment horizon.",
   icons: {
     icon: "/favicon.ico",
   },

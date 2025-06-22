@@ -310,8 +310,11 @@ export default function Page() {
         }}
       >
         <h1 style={{ whiteSpace: 'nowrap', margin: 0 }}>
-          Pennywise Investment Portfolio Recommendation
+          Pennywise: Your Investment Guide
         </h1>
+        <p style={{ margin: '0.5rem 0', color: 'var(--color-secondary)' }}>
+          From risk tolerance to performance tracking
+        </p>
       </div>
       <section
         className="top-row"
