@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import "../styles/global.css";
+import CustomHead from "./head";
 
 export const metadata: Metadata = {
   title: "Pennywise: Your Investment Guide",
@@ -21,6 +22,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body>
+          <CustomHead />
           {children}
           <Analytics />
         </body>
