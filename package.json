@@ -2,11 +2,15 @@
   "name": "pennywise",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "instructions": "bash instructions.sh"
+    "instructions": "bash instructions.sh",
+    "test": "jest --verbose"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.20.2",
@@ -23,6 +27,11 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "@types/jest": "latest",
+    "jest": "latest",
+    "ts-jest": "latest",
+    "mongodb-memory-server": "latest",
+    "node-mocks-http": "latest"
   }
 }

@@ -27,6 +27,15 @@ npm install @clerk/nextjs@latest
 npm install
 ```
 
+### Node version
+
+Pennywise requires Node.js v18.14.0, v20.x, v22.x, or v24.x and above. Node.js v23.x is currently not supported by our test tooling.
+
+You can automatically switch to the LTS version (v22.x) with nvm:
+```bash
+nvm use
+```
+
 ## Development
 
 ```bash
@@ -53,3 +62,11 @@ npm start
 - `npm run dev`: Run in development mode.
 - `npm run build`: Build for production.
 - `npm start`: Start production server.
+
+## Testing
+
+Run unit and integration tests via Jest:
+```bash
+npx jest --verbose
+# or: npm test
+```
