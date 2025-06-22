@@ -70,3 +70,15 @@ Run unit and integration tests via Jest:
 npx jest --verbose
 # or: npm test
 ```
+
+## Environment Variables
+
+The app uses the following environment variables (create a `.env.local` file):
+
+```bash
+# Google Analytics (gtag.js)
+NEXT_PUBLIC_GTAG_ID=AW-17250895076
+
+# MongoDB connection string
+MONGODB_URI=<your_mongodb_uri>
+```
