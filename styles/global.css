@@ -30,6 +30,61 @@ body {
   }
 }
 
+/* Container for the app content */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Controls row (theme toggle, navigation, auth buttons) */
+.controls {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+/* Page header section */
+.page-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.page-header h1 {
+  margin: 0;
+  white-space: nowrap;
+}
+.page-header p {
+  margin: 0.5rem 0;
+  color: var(--color-secondary);
+}
+
+/* Mobile tweaks */
+@media (max-width: 600px) {
+  .container {
+    padding: 0.5rem;
+  }
+  .controls {
+    justify-content: center;
+    gap: 1rem;
+  }
+  .page-header {
+    justify-content: center;
+    text-align: center;
+  }
+  .page-header h1 {
+    white-space: normal;
+    font-size: 1.5rem;
+  }
+  .page-header p {
+    font-size: 0.9rem;
+  }
+}
+
 /* Dark theme overrides */
 [data-theme="dark"] {
   --color-background: #1e1e1e;

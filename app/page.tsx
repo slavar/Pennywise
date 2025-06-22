@@ -236,16 +236,8 @@ export default function Page() {
     forecastGain >= 0 ? 'var(--color-gain)' : 'var(--color-loss)';
 
   return (
-    <main style={{ maxWidth: 800, margin: '0 auto', padding: '1rem' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          marginBottom: '1rem',
-        }}
-      >
+    <main className="container">
+      <div className="controls">
         <label
           style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginRight: '1rem' }}
         >
@@ -300,15 +292,7 @@ export default function Page() {
       </div>
 
 
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          marginBottom: '1rem',
-        }}
-      >
+      <div className="page-header">
         <h1 style={{ whiteSpace: 'nowrap', margin: 0 }}>
           Pennywise: Your Investment Guide
         </h1>
