@@ -6,8 +6,8 @@
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "npm run test && next dev",
+    "build": "npm run test && next build",
     "start": "next start",
     "instructions": "bash instructions.sh",
     "test": "jest --verbose"
