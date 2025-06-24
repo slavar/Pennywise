@@ -1,7 +1,7 @@
 /**
  * Global <head> elements for the Pennywise App, including analytics scripts.
  */
-export default function Head() {
+export default function CustomHead() {
   return (
     <>
       {/* Google tag (gtag.js) */}

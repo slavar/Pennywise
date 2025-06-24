@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import "../styles/global.css";
 import CustomHead from "./head";
+import FloatingFeedback from "./FloatingFeedback";
 
 export const metadata: Metadata = {
   title: "Pennywise: Your Investment Guide",
@@ -25,6 +26,7 @@ export default function RootLayout({
           <CustomHead />
           {children}
           <Analytics />
+          <FloatingFeedback />
         </body>
       </html>
     </ClerkProvider>
