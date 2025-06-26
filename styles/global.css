@@ -1,3 +1,12 @@
+/* Pennywise footer */
+.pw-footer {
+  text-align: center;
+  color: var(--color-secondary);
+  margin-top: 1rem;
+  font-size: 0.97rem;
+  padding: 16px 0;
+  background: transparent;
+}
 :root {
   --color-primary: #0052cc;
   --color-secondary: #172b4d;
