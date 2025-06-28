@@ -37,7 +37,21 @@ describe('POST /api/portfolio-analyze', () => {
       __esModule: true,
       default: Promise.resolve(mongoClient),
     }));
-    jest.doMock('@clerk/nextjs/server', () => ({ getAuth: () => ({ userId: 'test-user' }) }));
+    // The mock for @clerk/nextjs/server is updated to include a mock for clerkClient, which is used to fetch user data.
+    jest.doMock('@clerk/nextjs/server', () => ({
+      getAuth: () => ({ userId: 'user_test_id' }),
+      clerkClient: jest.fn().mockResolvedValue({
+        users: {
+          getUser: jest.fn().mockResolvedValue({
+            id: 'user_test_id',
+            primaryEmailAddressId: 'email_id_123',
+            emailAddresses: [
+              { id: 'email_id_123', emailAddress: 'test@example.com' },
+            ],
+          }),
+        },
+      }),
+    }));
     jest.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       status: 200,
@@ -80,7 +94,8 @@ describe('POST /api/portfolio-analyze', () => {
     expect(data.gain).toBeCloseTo((data.performance[1].value / data.performance[0].value - 1) * 100);
 
     const db = mongoClient.db();
-    const saved = await db.collection('portfolios').findOne({ userId: 'test-user' });
+    // The test is updated to check that the portfolio is saved with the user's email address as the userId.
+    const saved = await db.collection('portfolios').findOne({ userId: 'test@example.com' });
     expect(saved).toBeTruthy();
     expect(saved.portfolio).toEqual(data.portfolio);
   });

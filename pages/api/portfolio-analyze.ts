@@ -3,7 +3,7 @@ import { subYears } from 'date-fns';
 import yahooFinance from 'yahoo-finance2';
 import { categories, categoryTickerOptions, PortfolioItem } from '../../lib/portfolio';
 import clientPromise from '../../lib/mongodb';
-import { getAuth } from '@clerk/nextjs/server';
+import { getAuth, clerkClient } from '@clerk/nextjs/server';
 
 /** One line item of the time-series performance */
 type PerformanceEntry = { date: string; value: number };
@@ -24,6 +24,11 @@ export default async function handler(
     const { userId } = getAuth(req);
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const user = await (await clerkClient()).users.getUser(userId);
+    const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
+    if (!email) {
+      return res.status(400).json({ error: 'Primary email not found for user' });
     }
     const { text, fileData, fileType, years } = req.body;
     const numYears = parseInt(years as string, 10) || 1;
@@ -152,13 +157,18 @@ export default async function handler(
 
     const mongoClient = await clientPromise;
     const db = mongoClient.db();
-    await db.collection('portfolios').insertOne({
-      userId,
-      createdAt: new Date(),
-      portfolio,
-      performance,
-      gain,
-    });
+    await db.collection('portfolios').updateOne(
+      { userId: email },
+      {
+        $set: {
+          createdAt: new Date(),
+          portfolio,
+          performance,
+          gain,
+        }
+      },
+      { upsert: true },
+    );
 
     return res.status(200).json({ portfolio, performance, gain });
   } catch (e: any) {

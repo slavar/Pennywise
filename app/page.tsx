@@ -10,7 +10,8 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from 'recharts';
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
+// useAuth hook is imported from Clerk to get the user's token
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser, useAuth } from '@clerk/nextjs';
 
 import { categoryTickerOptions, categories, Category, PortfolioItem } from '../lib/portfolio';
 
@@ -96,7 +97,8 @@ export default function Page() {
     }
     (async () => {
       try {
-        const res = await fetch('/api/portfolio-saved');
+        // The fetch URL is updated to use a template literal.
+        const res = await fetch(`/api/portfolio-saved`);
         if (res.ok) {
           const data = await res.json();
           setCustomPortfolio(data.portfolio ?? []);
@@ -117,10 +119,9 @@ export default function Page() {
       const overrideParam = categories
         .map(cat => categoryTickerOptions[cat][selectedIndexes[cat]])
         .join(',');
+      // The fetch URL is updated to remove unnecessary URL encoding.
       const res = await fetch(
-        `/api/portfolio?risk=${risk}&horizon=${horizon}&years=${years}&tickers=${encodeURIComponent(
-          overrideParam
-        )}`
+        `/api/portfolio?risk=${risk}&horizon=${horizon}&years=${years}&tickers=${overrideParam}`
       );
       const data = await res.json();
       if ('error' in data) {
@@ -160,6 +161,9 @@ export default function Page() {
     });
   };
 
+  // getToken is retrieved from the useAuth hook to authorize the API request.
+  const { getToken } = useAuth();
+
   const handleAnalyze = async () => {
     setAnalysisLoading(true);
     setAnalysisError(null);
@@ -180,9 +184,13 @@ export default function Page() {
       } else {
         payload = { text: uploadText };
       }
+      // The Authorization header is added to the request, containing the user's JWT.
       const response = await fetch('/api/portfolio-analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await getToken()}`
+        },
         body: JSON.stringify({ ...payload, years }),
       });
       const data = await response.json();

@@ -8,7 +8,8 @@ const FloatingFeedback = () => {
 
   const handleFeedbackSubmit = async () => {
     if (feedback.trim() === "") return;
-    await fetch("/api/feedback", {
+    // The fetch URL is updated to use a template literal.
+    await fetch(`/api/feedback`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ feedback }),

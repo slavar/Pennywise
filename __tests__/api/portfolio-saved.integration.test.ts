@@ -26,12 +26,27 @@ describe('GET /api/portfolio-saved', () => {
       __esModule: true,
       default: Promise.resolve(mongoClient),
     }));
-    jest.doMock('@clerk/nextjs/server', () => ({ getAuth: () => ({ userId: 'test-user' }) }));
+    // The mock for @clerk/nextjs/server is updated to include a mock for clerkClient, which is used to fetch user data.
+    jest.doMock('@clerk/nextjs/server', () => ({
+      getAuth: () => ({ userId: 'user_test_id' }),
+      clerkClient: jest.fn().mockResolvedValue({
+        users: {
+          getUser: jest.fn().mockResolvedValue({
+            id: 'user_test_id',
+            primaryEmailAddressId: 'email_id_123',
+            emailAddresses: [
+              { id: 'email_id_123', emailAddress: 'test@example.com' },
+            ],
+          }),
+        },
+      }),
+    }));
     handler = require('../../pages/api/portfolio-saved').default;
     const db = mongoClient.db();
     await db.collection('portfolios').deleteMany({});
+    // The test data is updated to use the user's email address as the userId.
     await db.collection('portfolios').insertOne({
-      userId: 'test-user',
+      userId: 'test@example.com',
       createdAt: new Date(),
       portfolio: [{ ticker: 'AAPL', weight: 0.5 }],
       performance: [{ date: '2020-01-01', value: 100 }],
@@ -70,7 +85,8 @@ describe('GET /api/portfolio-saved', () => {
       __esModule: true,
       default: Promise.resolve(mongoClient),
     }));
-    jest.doMock('@clerk/nextjs/server', () => ({ getAuth: () => ({ userId: undefined }) }));
+    // The mock for @clerk/nextjs/server is updated to return an undefined user.
+    jest.doMock('@clerk/nextjs/server', () => ({ getAuth: () => ({ user: undefined }) }));
     handler = require('../../pages/api/portfolio-saved').default;
     const req = httpMocks.createRequest({ method: 'GET' });
     const res = httpMocks.createResponse();

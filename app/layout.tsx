@@ -21,7 +21,8 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      {/* The suppressHydrationWarning prop is added to the html tag to prevent a warning from Next.js about a mismatch between the server and client rendered content. */}
+      <html lang="en" suppressHydrationWarning>
         <body>
           <CustomHead />
           {children}

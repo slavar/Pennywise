@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import clientPromise from '../../lib/mongodb';
-import { getAuth } from '@clerk/nextjs/server';
+import { getAuth, clerkClient } from '@clerk/nextjs/server';
 
 export default async function handler(
   req: NextApiRequest,
@@ -16,11 +16,16 @@ export default async function handler(
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  const user = await (await clerkClient()).users.getUser(userId);
+  const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
+  if (!email) {
+    return res.status(400).json({ error: 'Primary email not found for user' });
+  }
   const client = await clientPromise;
   const db = client.db();
   const saved = await db
     .collection('portfolios')
-    .find({ userId })
+    .find({ userId: email })
     .sort({ createdAt: -1 })
     .limit(1)
     .toArray();
