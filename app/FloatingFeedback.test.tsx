@@ -1,13 +1,14 @@
+import { vi } from 'vitest';
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import FloatingFeedback from "./FloatingFeedback";
 
 // Allow fetch mocking
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 describe("FloatingFeedback Component", () => {
   beforeEach(() => {
-    (fetch as jest.Mock).mockClear();
+    (fetch as vi.Mock).mockClear();
   });
 
   it("renders Provide feedback button always", () => {
@@ -24,7 +25,7 @@ describe("FloatingFeedback Component", () => {
 
   it("submits feedback, clears and closes", async () => {
     // Act needed for state updates when using async
-    (fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({ message: "ok" }) });
+    (fetch as vi.Mock).mockResolvedValue({ ok: true, json: async () => ({ message: "ok" }) });
     render(<FloatingFeedback />);
     fireEvent.click(screen.getByText(/provide feedback/i));
     const textarea = screen.getByPlaceholderText(/your feedback/i);

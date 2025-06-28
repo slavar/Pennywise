@@ -45,6 +45,16 @@ describe('getPortfolio', () => {
       { category: 'stocks', ticker: 'Z', weight: expectedAlloc.stocks },
     ]);
   });
+
+  it('handles empty override', () => {
+    const result = getPortfolio('mid', 'mid', {});
+    const expectedAlloc = riskAllocationMap.mid;
+    expect(result).toEqual([
+      { category: 'bonds', ticker: categoryTickerOptions.bonds[0], weight: expectedAlloc.bonds },
+      { category: 'etfs', ticker: categoryTickerOptions.etfs[0], weight: expectedAlloc.etfs },
+      { category: 'stocks', ticker: categoryTickerOptions.stocks[0], weight: expectedAlloc.stocks },
+    ]);
+  });
 });
 
 describe('categories and categoryTickerOptions', () => {
