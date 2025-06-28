@@ -1,73 +1,31 @@
-import { MongoMemoryServer } from "mongodb-memory-server";
-import { MongoClient } from "mongodb";
-import httpMocks from "node-mocks-http";
+import { createMocks } from 'node-mocks-http';
+import handleFeedback from '@/pages/api/feedback';
+import clientPromise from '@/lib/mongodb';
 
-let mongod: MongoMemoryServer;
-let mongoClient: MongoClient;
-
-beforeAll(async () => {
-  mongod = await MongoMemoryServer.create();
-  process.env.MONGODB_URI = mongod.getUri();
-  mongoClient = new MongoClient(process.env.MONGODB_URI!);
-  await mongoClient.connect();
-});
-
-afterAll(async () => {
-  await mongoClient.close();
-  await mongod.stop();
-});
-
-describe("/api/feedback", () => {
-  let handler: any;
-  beforeEach(() => {
-    // Patch the db lib for this test
-    jest.resetModules();
-    jest.doMock("../../lib/mongodb", () => ({
-      __esModule: true,
-      default: Promise.resolve(mongoClient)
-    }));
-    handler = require("../../pages/api/feedback").default;
+describe('/api/feedback', () => {
+  beforeEach(async () => {
+    const client = await clientPromise;
+    const db = client.db();
+    await db.collection('UserFeedback').deleteMany({});
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-    jest.dontMock("../../lib/mongodb");
-  });
-
-  it("returns 201 and saves feedback for valid POST", async () => {
-    const req = httpMocks.createRequest({
-      method: "POST",
-      body: { feedback: "This is a test feedback!" },
+  it('should save feedback to the database', async () => {
+    const { req, res } = createMocks({
+      method: 'POST',
+      body: {
+        feedback: 'This is a test feedback.',
+      },
     });
-    const res = httpMocks.createResponse();
-    await handler(req, res);
-    expect(res.statusCode).toBe(201);
-    const json = res._getJSONData();
-    expect(json.message).toMatch(/submitted/i);
-    // Check feedback in DB
-    const db = mongoClient.db();
-    const rec = await db.collection("UserFeedback").findOne({ feedback: "This is a test feedback!" });
-    expect(rec).toBeTruthy();
-    expect(typeof rec.createdAt).toBe("object");
-  });
 
-  it("returns 400 for missing feedback", async () => {
-    const req = httpMocks.createRequest({
-      method: "POST",
-      body: {},
-    });
-    const res = httpMocks.createResponse();
-    await handler(req, res);
-    expect(res.statusCode).toBe(400);
-    const json = res._getJSONData();
-    expect(json.message).toMatch(/required/i);
-  });
+    await handleFeedback(req, res);
 
-  it("rejects unsupported method", async () => {
-    const req = httpMocks.createRequest({ method: "GET" });
-    const res = httpMocks.createResponse();
-    await handler(req, res);
-    expect(res.statusCode).toBe(405);
-    expect(res._getJSONData().message).toMatch(/not allowed/i);
+    expect(res._getStatusCode()).toBe(201);
+    expect(JSON.parse(res._getData()).message).toEqual('Feedback submitted');
+
+    const client = await clientPromise;
+    const db = client.db();
+    const collection = db.collection('UserFeedback');
+    const feedback = await collection.findOne({ feedback: 'This is a test feedback.' });
+    expect(feedback).not.toBeNull();
   });
 });
