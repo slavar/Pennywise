@@ -17,6 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
+      'react-dom/test-utils': require.resolve('react-dom/test-utils'),
     },
   },
 })
