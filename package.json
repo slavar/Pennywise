@@ -6,8 +6,8 @@
     "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0"
   },
   "scripts": {
-    "dev": "npm run test && next dev",
-    "build": "npm run test && next build",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "instructions": "bash instructions.sh",
     "test": "vitest run -c vitest.config.ts"
@@ -17,24 +17,25 @@
     "@vercel/analytics": "^1.5.0",
     "date-fns": "^2.29.3",
     "mongodb": "^6.17.0",
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
+    "next": "^14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "recharts": "^2.1.9",
     "yahoo-finance2": "^3.3.5"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@types/node": "^18.19.42",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.6.0",
     "@vitest/ui": "^3.2.4",
     "jsdom": "^26.1.0",
     "mongodb-memory-server": "^10.1.4",
-    "node-mocks-http": "latest",
-    "typescript": "latest",
+    "node-mocks-http": "^1.15.0",
+    "typescript": "^5.5.4",
     "vitest": "^3.2.4"
   }
 }

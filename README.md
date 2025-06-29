@@ -1,4 +1,4 @@
-# Pennywise 
+# Pennywise
 
 Investment Portfolio Recommendation Web Application.
 
@@ -23,7 +23,6 @@ Investment Portfolio Recommendation Web Application.
 ## Setup & Installation
 
 ```bash
-npm install @clerk/nextjs@latest
 npm install
 ```
 
@@ -62,13 +61,13 @@ npm start
 - `npm run dev`: Run in development mode.
 - `npm run build`: Build for production.
 - `npm start`: Start production server.
+- `npm test`: Run unit and integration tests.
 
 ## Testing
 
-Run unit and integration tests via Jest:
+Run unit and integration tests via Vitest:
 ```bash
-npx jest --verbose
-# or: npm test
+npm test
 ```
 
 ## Environment Variables
@@ -82,3 +81,4 @@ NEXT_PUBLIC_GTAG_ID=AW-17250895076
 # MongoDB connection string
 MONGODB_URI=<your_mongodb_uri>
 ```
+

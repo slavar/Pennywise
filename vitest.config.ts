@@ -12,12 +12,10 @@ export default defineConfig({
     reporters: ['default'],
     threads: false,
     isolate: false,
-    
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
-      'react-dom/test-utils': require.resolve('react-dom/test-utils'),
     },
   },
 })

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import "../styles/global.css";
+import Footer from "./Footer";
 import CustomHead from "./head";
 import FloatingFeedback from "./FloatingFeedback";
 
@@ -26,9 +27,7 @@ export default function RootLayout({
         <body>
           <CustomHead />
           {children}
-          <footer className="pw-footer" style={{ textAlign: "center", color: "var(--color-secondary)", marginTop: "1rem", fontSize: "0.97rem", padding: "16px 0" }}>
-            Questions or feedback? Reach us at <a href="mailto:info@pennywise.business">info@pennywise.business</a>
-          </footer>
+          <Footer />
           <Analytics />
           <FloatingFeedback />
         </body>
