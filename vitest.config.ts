@@ -10,7 +10,6 @@ export default defineConfig({
     globalSetup: './vitest.global.setup.ts',
     setupFiles: './vitest.setup.ts',
     reporters: ['default'],
-    threads: false,
     isolate: false,
   },
   resolve: {
