@@ -72,9 +72,16 @@ body {
 .btn { border-radius: var(--radius-ctl); padding: 8px 12px; border: 1px solid transparent; }
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-ghost { background: transparent; color: var(--text); border-color: transparent; }
+.btn-outline { background: transparent; color: var(--text); border-color: var(--grid); }
+.btn:hover { filter: brightness(0.98); }
+.btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .segment { display: inline-flex; border: 1px solid var(--grid); border-radius: var(--radius-ctl); overflow: hidden; }
 .segment > button { padding: 6px 10px; border: 0; background: transparent; cursor: pointer; }
 .segment > button[aria-pressed="true"] { background: var(--primary); color: #fff; }
+
+/* Chart container helpers */
+.chart-container { border-radius: var(--radius-card); overflow: hidden; background: var(--surface); }
+.chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
 
 /* Page header section */
 .page-header { display: flex; justify-content: flex-start; align-items: center; flex-wrap: wrap; margin: 1rem 0; }

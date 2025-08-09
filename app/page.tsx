@@ -9,6 +9,7 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
+  Area,
 } from 'recharts';
 // useAuth hook is imported from Clerk to get the user's token
 import { SignedIn, useUser, useAuth } from '@clerk/nextjs';
@@ -447,6 +448,14 @@ export default function Page() {
               }}
             >
               <h3>Upload Existing Portfolio</h3>
+              <div className="segment" role="tablist" aria-label="Input mode" style={{ margin: '0.5rem 0 1rem' }}>
+                <button role="tab" aria-selected={!uploadFile} onClick={() => { setUploadFile(null); }}>
+                  Paste Text
+                </button>
+                <button role="tab" aria-selected={!!uploadFile} onClick={() => { /* switch by selecting file below */ }}>
+                  Upload File
+                </button>
+              </div>
               <p style={{ margin: '0.5rem 0 1rem', color: '#555' }}>
                 You can upload a screenshot of your portfolio from your investment application.
               </p>
@@ -457,6 +466,12 @@ export default function Page() {
                     setUploadFile(files[0]);
                     e.preventDefault();
                   }
+                }}
+                onDragOver={(e) => { e.preventDefault(); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const files = Array.from(e.dataTransfer.files);
+                  if (files.length > 0) setUploadFile(files[0]);
                 }}
                 style={{
                   border: '1px dashed #ccc',
@@ -517,46 +532,19 @@ export default function Page() {
           </div>
         )}
         <section className="card" style={{ marginBottom: '2rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-            <span>Historic</span>
-            <div
-              onClick={() =>
-                setChartType(chartType === 'historical' ? 'forecast' : 'historical')
-              }
-              style={{
-                margin: '0 0.5rem',
-                width: '40px',
-                height: '20px',
-                backgroundColor:
-                  chartType === 'forecast' ? 'var(--color-primary)' : '#ccc',
-                borderRadius: '12px',
-                position: 'relative',
-                cursor: 'pointer',
-              }}
-            >
-              <div
-                style={{
-                  width: '16px',
-                  height: '16px',
-                  backgroundColor: '#fff',
-                  borderRadius: '50%',
-                  position: 'absolute',
-                  top: '2px',
-                  left:
-                    chartType === 'forecast'
-                      ? 'calc(100% - 18px)'
-                      : '2px',
-                  transition: 'left 0.2s',
-                }}
-              />
+          <div className="chart-header">
+            <div role="group" aria-label="Series" className="segment">
+              <button aria-pressed={chartType === 'historical'} onClick={() => setChartType('historical')}>Historic</button>
+              <button aria-pressed={chartType === 'forecast'} onClick={() => setChartType('forecast')}>Forecast</button>
             </div>
-            <span
-              title="Fixed-return approach"
-              style={{ cursor: 'help' }}
-            >
-              Forecast
-            </span>
-          </label>
+            <div role="group" aria-label="Years" className="segment">
+              {yearOptions.map(opt => (
+                <button key={opt} aria-pressed={years === opt} onClick={() => setYears(opt)}>
+                  {opt}y
+                </button>
+              ))}
+            </div>
+          </div>
           <h2 style={{ marginBottom: '1rem' }}>
             {chartType === 'historical' ? (
               <>
@@ -572,43 +560,20 @@ export default function Page() {
               </>
             )}
           </h2>
-          <div style={{ marginBottom: '1rem' }}>
-            {yearOptions.map(opt => (
-              <button
-                key={opt}
-                onClick={() => setYears(opt)}
-                style={{
-                  marginRight: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  backgroundColor:
-                    years === opt ? 'var(--color-primary)' : 'transparent',
-                  color: years === opt ? '#fff' : 'var(--color-text)',
-                  border: `1px solid var(--color-primary)`,
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                {opt} year{opt > 1 ? 's' : ''}
-              </button>
-            ))}
-          </div>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart
-              data={chartType === 'historical' ? performance : forecastData}
-            >
-              <XAxis dataKey="date" />
-              <YAxis domain={[
-                'auto',
-                'auto'
-              ]} />
-              <CartesianGrid strokeDasharray="3 3" />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="var(--color-primary)"
-                dot={false}
-              />
+            <LineChart data={chartType === 'historical' ? performance : forecastData}>
+              <defs>
+                <linearGradient id="pwGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="date" stroke="var(--color-secondary)" />
+              <YAxis domain={['auto','auto']} stroke="var(--color-secondary)" />
+              <CartesianGrid stroke="var(--grid)" strokeDasharray="3 3" />
+              <Tooltip contentStyle={{ borderRadius: 8 }} />
+              <Area type="monotone" dataKey="value" stroke="none" fill="url(#pwGradient)" />
+              <Line type="monotone" dataKey="value" stroke="var(--color-primary)" dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </section>
