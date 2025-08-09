@@ -13,7 +13,7 @@ import {
 // useAuth hook is imported from Clerk to get the user's token
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser, useAuth } from '@clerk/nextjs';
 
-import { categoryTickerOptions, categories, Category, PortfolioItem } from '../lib/portfolio';
+import { categoryTickerOptions, categories, Category, PortfolioItem, getPortfolio } from '../lib/portfolio';
 
 // PerformanceEntry: date and portfolio value time-series
 type PerformanceEntry = { date: string; value: number };
@@ -116,13 +116,17 @@ export default function Page() {
       return;
     }
     async function fetchData() {
-      const overrideParam = categories
-        .map(cat => categoryTickerOptions[cat][selectedIndexes[cat]])
-        .join(',');
-      // The fetch URL is updated to remove unnecessary URL encoding.
-      const res = await fetch(
-        `/api/portfolio?risk=${risk}&horizon=${horizon}&years=${years}&tickers=${overrideParam}`
-      );
+      const selectedTickers = categories
+        .map(cat => categoryTickerOptions[cat][selectedIndexes[cat]]);
+
+      // Build weights on the client based on current risk/horizon
+      const overrideTickers = Object.fromEntries(
+        categories.map((cat, idx) => [cat, [selectedTickers[idx]]])
+      ) as Partial<Record<Category, readonly string[]>>;
+      const computedPortfolio = getPortfolio(risk, horizon, overrideTickers);
+
+      const overrideParam = selectedTickers.join(',');
+      const res = await fetch(`/api/portfolio?years=${years}&tickers=${overrideParam}`);
       const data = await res.json();
       if ('error' in data) {
         console.error(data.error);
@@ -131,9 +135,47 @@ export default function Page() {
         setGain(0);
         return;
       }
-      setPortfolio(data.portfolio ?? []);
-      setPerformance(data.performance ?? []);
-      setGain(data.gain ?? 0);
+
+      const series: Array<{ symbol: string; points: { date: string; close: number }[] }> = data.series ?? [];
+      if (!series.length) {
+        setPortfolio(computedPortfolio);
+        setPerformance([]);
+        setGain(0);
+        return;
+      }
+
+      // Index quotes by date for quick lookup
+      const bySymbol: Record<string, Record<string, number>> = Object.fromEntries(
+        series.map(s => [
+          s.symbol,
+          Object.fromEntries(
+            s.points.map(p => [new Date(p.date).toISOString().slice(0, 10), p.close])
+          )
+        ])
+      );
+
+      // Use intersection of dates across all symbols to avoid gaps causing zeros
+      const dateSets = series.map(s => new Set(s.points.map(p => new Date(p.date).toISOString().slice(0, 10))));
+      let baseDates = Array.from(dateSets[0] ?? []);
+      for (let i = 1; i < dateSets.length; i++) {
+        baseDates = baseDates.filter(d => dateSets[i].has(d));
+      }
+      baseDates.sort();
+      if (baseDates.length === 0 && series[0]) {
+        baseDates = series[0].points.map(p => new Date(p.date).toISOString().slice(0, 10));
+      }
+      const perf = baseDates.map((date) => {
+        const value = computedPortfolio.reduce<number>((sum, p: PortfolioItem) => {
+          const price = bySymbol[p.ticker]?.[date] ?? 0;
+          return sum + price * p.weight;
+        }, 0);
+        return { date, value };
+      });
+      const g = perf.length > 1 ? ((perf[perf.length - 1].value / perf[0].value) - 1) * 100 : 0;
+
+      setPortfolio(computedPortfolio);
+      setPerformance(perf);
+      setGain(g);
     }
     fetchData();
   }, [risk, horizon, years, selectedIndexes, customPortfolio, savedChecked]);

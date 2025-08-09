@@ -82,3 +82,28 @@ NEXT_PUBLIC_GTAG_ID=AW-17250895076
 MONGODB_URI=<your_mongodb_uri>
 ```
 
+## API
+
+### GET `/api/portfolio`
+
+- Query: `tickers` (comma-separated symbols, default `BND,VOO,AAPL`), `years` (e.g., `1`, `3`, `5`; default `5`).
+- Response: time-series per symbol using Yahoo Finance `chart`.
+
+Example:
+```json
+{
+  "series": [
+    {
+      "symbol": "VOO",
+      "points": [
+        { "date": "2023-01-01T00:00:00.000Z", "close": 377.45 },
+        { "date": "2023-01-08T00:00:00.000Z", "close": 381.12 }
+      ]
+    }
+  ]
+}
+```
+
+Notes:
+- Uses `chart(range, interval)` with `range = <years>y`; interval is `1wk` for `years >= 5`, otherwise `1d`.
+- The app computes aggregate performance client-side using the selected tickers and current risk/horizon.

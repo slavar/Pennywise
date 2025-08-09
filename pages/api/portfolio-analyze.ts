@@ -26,7 +26,7 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
     const user = await (await clerkClient()).users.getUser(userId);
-    const email = user.emailAddresses.find(e => e.id === user.primaryEmailAddressId)?.emailAddress;
+    const email = user.emailAddresses.find((e: any) => e.id === user.primaryEmailAddressId)?.emailAddress;
     if (!email) {
       return res.status(400).json({ error: 'Primary email not found for user' });
     }
@@ -45,7 +45,7 @@ export default async function handler(
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('OpenAI API key not configured');
+      return res.status(400).json({ error: 'Missing configuration' });
     }
 
     const messages: any[] = [
@@ -106,10 +106,9 @@ export default async function handler(
 
     const endDate = new Date();
     const startDate = subYears(endDate, numYears);
-    const client = new yahooFinance();
     const rawData = await Promise.all(
       sharesPortfolio.map(p =>
-        client.historical(p.ticker, {
+        (yahooFinance as any).historical(p.ticker, {
           period1: startDate,
           period2: endDate,
           interval: '1d',
@@ -120,10 +119,10 @@ export default async function handler(
       return res.status(400).json({ error: 'No data available' });
     }
 
-    const dates = rawData[0].map(d => d.date.toISOString().slice(0, 10));
+    const dates = rawData[0].map((d: any) => d.date.toISOString().slice(0, 10));
 
     // Calculate performance time-series based on shares and closing prices
-    const performance = dates.map((date, idx) => {
+    const performance = dates.map((date: string, idx: number) => {
       const value = sharesPortfolio.reduce(
         (sum, p, ti) => sum + (rawData[ti][idx]?.close || 0) * p.shares,
         0
@@ -172,6 +171,7 @@ export default async function handler(
 
     return res.status(200).json({ portfolio, performance, gain });
   } catch (e: any) {
-    return res.status(500).json({ error: e.message || 'Internal error' });
+    console.error(e);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }

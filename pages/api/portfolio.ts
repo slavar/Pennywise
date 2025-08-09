@@ -1,63 +1,32 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import yahooFinance from 'yahoo-finance2';
-import { subYears } from 'date-fns';
-import { getPortfolio, PortfolioItem, categories, Category } from '../../lib/portfolio';
+// Handle ESM/CJS interop consistently
+import * as yahooFinanceNS from 'yahoo-finance2';
+const yahooFinance: any = (yahooFinanceNS as any).default ?? (yahooFinanceNS as any);
 
-type PerformanceEntry = { date: string; value: number };
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<{
-    portfolio: PortfolioItem[];
-    performance: PerformanceEntry[];
-    gain: number;
-  } | { error: string }>
-) {
+export default async function handler(req: any, res: any) {
   try {
-    const { risk = 'mid', horizon = 'mid', years = '1', tickers } = req.query;
-    const numYears = parseInt(years as string, 10) || 1;
+    const { tickers = 'BND,VOO,AAPL', years = '5' } = req.query;
+    const symbols = String(tickers).split(',').map((s) => s.trim()).filter(Boolean);
 
-    // Parse optional ticker overrides in order: bonds, etfs, stocks
-    let overrideTickers: Partial<Record<Category, readonly string[]>> | undefined;
-    if (typeof tickers === 'string') {
-      const parts = tickers.split(',');
-      if (parts.length === categories.length) {
-        overrideTickers = {};
-        categories.forEach((cat, idx) => {
-          overrideTickers![cat] = [parts[idx]];
-        });
-      }
-    }
-    const portfolio = getPortfolio(risk as any, horizon as any, overrideTickers);
-    const endDate = new Date();
-    const startDate = subYears(endDate, numYears);
-    // Create a new instance of the Yahoo Finance client
-    const query = new yahooFinance();
-    const rawData = await Promise.all(
-      portfolio.map(p => 
-        query.historical(p.ticker, {
-          period1: startDate,
-          period2: endDate,
-          interval: '1d'
-        })
-      )
+    // library currently requires period1 (and optionally period2)
+    const y = Math.max(1, Number(years) || 1);
+    const now = new Date();
+    const period2 = now;
+    const period1 = new Date(now.getTime() - y * 365 * 24 * 60 * 60 * 1000);
+    const interval = y >= 5 ? '1wk' : '1d';
+
+    const results = await Promise.all(
+      symbols.map((sym) => yahooFinance.chart(sym, { period1, period2, interval }))
     );
-    if (rawData.length === 0) {
-      return res.status(400).json({ error: 'No data available' });
-    }
-    const dates = rawData[0].map(d => d.date.toISOString().slice(0, 10));
-    const performance = dates.map((date, idx) => {
-      const value = portfolio.reduce((sum, p, ti) => {
-        const price = rawData[ti][idx]?.close || 0;
-        return sum + price * p.weight;
-      }, 0);
-      return { date, value };
-    });
-    const gain = (
-      (performance[performance.length - 1].value / performance[0].value - 1) * 100
-    );
-    return res.status(200).json({ portfolio, performance, gain });
-  } catch (e: any) {
-    res.status(500).json({ error: e.message || 'Internal error' });
+
+    const series = results.map((data: any, i: number) => ({
+      symbol: symbols[i],
+      points: (data?.quotes ?? []).map((q: any) => ({ date: q.date, close: q.close })),
+    }));
+
+    return res.status(200).json({ series });
+  } catch (err: any) {
+    console.error('[/api/portfolio] error', err);
+    return res.status(500).json({ error: err?.message || 'Internal error' });
   }
 }

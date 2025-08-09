@@ -3,7 +3,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import "../styles/global.css";
 import Footer from "./Footer";
-import CustomHead from "./head";
 import FloatingFeedback from "./FloatingFeedback";
 
 export const metadata: Metadata = {
@@ -25,7 +24,6 @@ export default function RootLayout({
       {/* The suppressHydrationWarning prop is added to the html tag to prevent a warning from Next.js about a mismatch between the server and client rendered content. */}
       <html lang="en" suppressHydrationWarning>
         <body>
-          <CustomHead />
           {children}
           <Footer />
           <Analytics />
