@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 // useAuth hook is imported from Clerk to get the user's token
-import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton, useUser, useAuth } from '@clerk/nextjs';
+import { SignedIn, useUser, useAuth } from '@clerk/nextjs';
 
 import { categoryTickerOptions, categories, Category, PortfolioItem, getPortfolio } from '../lib/portfolio';
 
@@ -19,16 +19,7 @@ import { categoryTickerOptions, categories, Category, PortfolioItem, getPortfoli
 type PerformanceEntry = { date: string; value: number };
 
 export default function Page() {
-  // Theme state: light or dark, persisted in localStorage
-  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
-    typeof window !== 'undefined' && localStorage.getItem('theme') === 'dark'
-      ? 'dark'
-      : 'light'
-  );
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+  // Theme handled globally in Header
   const [risk, setRisk] = useState<'low' | 'mid' | 'high'>('mid');
   const [horizon, setHorizon] = useState<'short' | 'mid' | 'long'>('mid');
   const [years, setYears] = useState<number>(5);
@@ -287,59 +278,7 @@ export default function Page() {
 
   return (
     <main className="container">
-      <div className="controls">
-        <label
-          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginRight: '1rem' }}
-        >
-          <span style={{ marginRight: '0.5rem' }}>Light</span>
-          <div
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            style={{
-              width: '40px',
-              height: '20px',
-              backgroundColor: theme === 'dark' ? 'var(--color-primary)' : '#ccc',
-              borderRadius: '12px',
-              position: 'relative',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-          >
-            <div
-              style={{
-                width: '16px',
-                height: '16px',
-                backgroundColor: '#fff',
-                borderRadius: '50%',
-                position: 'absolute',
-                top: '2px',
-                left: theme === 'dark' ? 'calc(100% - 18px)' : '2px',
-                transition: 'left 0.2s',
-              }}
-            />
-          </div>
-          <span style={{ marginLeft: '0.5rem' }}>Dark</span>
-        </label>
-        <a
-          href="/learn"
-          style={{
-            color: 'var(--color-primary)',
-            textDecoration: 'underline',
-            fontWeight: 'bold',
-            marginLeft: '1rem',
-          }}
-        >
-          Financial Literacy Basics
-        </a>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <SignedOut>
-            <SignInButton>Sign In</SignInButton>
-            <SignUpButton>Sign Up</SignUpButton>
-          </SignedOut>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
-        </div>
-      </div>
+      {/* Global header provides navigation and theme */}
 
 
       <div className="page-header">
@@ -355,7 +294,7 @@ export default function Page() {
         style={{ display: 'flex', alignItems: 'stretch', gap: '2rem', marginBottom: '2rem' }}
       >
           <div style={{ flex: 1 }}>
-            <section style={{ marginBottom: '2rem' }}>
+            <section className="card" style={{ marginBottom: '2rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem' }}>
                 Risk Preference: {riskOptions.find(opt => opt.value === risk)!.label}
               </label>
@@ -374,7 +313,7 @@ export default function Page() {
                 ))}
               </div>
             </section>
-            <section>
+            <section className="card">
               <label style={{ display: 'block', marginBottom: '0.5rem' }}>
                 Investment Horizon: {horizonOptions.find(opt => opt.value === horizon)!.label}
               </label>
@@ -394,7 +333,7 @@ export default function Page() {
               </div>
             </section>
           </div>
-          <div style={{ flex: '0 0 30%' }}>
+          <div style={{ flex: '0 0 30%' }} className="card">
           <h2 style={{ fontWeight: 'normal', fontSize: '1rem', whiteSpace: 'nowrap', marginBottom: '0.5rem' }}>
             Portfolio Breakdown
           </h2>
@@ -497,11 +436,10 @@ export default function Page() {
               zIndex: 1000,
             }}
           >
-            <div
+            <div className="card"
               style={{
-                background: '#fff',
+                background: 'var(--surface)',
                 padding: '2rem',
-                borderRadius: '8px',
                 width: '90%',
                 maxWidth: '500px',
                 maxHeight: '90%',
@@ -578,7 +516,7 @@ export default function Page() {
             </div>
           </div>
         )}
-        <section style={{ marginBottom: '2rem' }}>
+        <section className="card" style={{ marginBottom: '2rem' }}>
           <label style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
             <span>Historic</span>
             <div

@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "../styles/global.css";
 import Footer from "./Footer";
 import FloatingFeedback from "./FloatingFeedback";
+import Header from "./Header";
 
 export const metadata: Metadata = {
   title: "Pennywise: Your Investment Guide",
@@ -24,6 +25,7 @@ export default function RootLayout({
       {/* The suppressHydrationWarning prop is added to the html tag to prevent a warning from Next.js about a mismatch between the server and client rendered content. */}
       <html lang="en" suppressHydrationWarning>
         <body>
+          <Header />
           {children}
           <Footer />
           <Analytics />
