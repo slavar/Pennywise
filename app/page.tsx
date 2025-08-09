@@ -20,6 +20,12 @@ import { categoryTickerOptions, categories, Category, PortfolioItem, getPortfoli
 type PerformanceEntry = { date: string; value: number };
 
 export default function Page() {
+  const formatCurrency = (n: number) =>
+    isFinite(n) ? `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '-';
+  const formatDate = (iso: string) => {
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? iso : d.toLocaleDateString();
+  };
   // Theme handled globally in Header
   const [risk, setRisk] = useState<'low' | 'mid' | 'high'>('mid');
   const [horizon, setHorizon] = useState<'short' | 'mid' | 'long'>('mid');
@@ -571,7 +577,11 @@ export default function Page() {
               <XAxis dataKey="date" stroke="var(--color-secondary)" />
               <YAxis domain={['auto','auto']} stroke="var(--color-secondary)" />
               <CartesianGrid stroke="var(--grid)" strokeDasharray="3 3" />
-              <Tooltip contentStyle={{ borderRadius: 8 }} />
+              <Tooltip
+                contentStyle={{ borderRadius: 8 }}
+                formatter={(value: any) => [formatCurrency(value as number), 'Value']}
+                labelFormatter={(label: any) => formatDate(label as string)}
+              />
               <Area type="monotone" dataKey="value" stroke="none" fill="url(#pwGradient)" />
               <Line type="monotone" dataKey="value" stroke="var(--color-primary)" dot={false} />
             </LineChart>

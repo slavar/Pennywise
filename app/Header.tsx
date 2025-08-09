@@ -21,8 +21,8 @@ export default function Header() {
         </nav>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div role="group" aria-label="Theme" className="segment" aria-live="polite">
-            <button aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>Light</button>
-            <button aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>Dark</button>
+            <button aria-pressed={theme === 'light'} onClick={() => setTheme('light')} title="Light theme">☀️ Light</button>
+            <button aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')} title="Dark theme">🌙 Dark</button>
           </div>
           <SignedOut>
             <SignInButton>Sign In</SignInButton>
@@ -36,4 +36,3 @@ export default function Header() {
     </header>
   );
 }
-

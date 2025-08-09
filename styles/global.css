@@ -99,3 +99,10 @@ body {
   .page-header h1 { white-space: normal; font-size: 1.5rem; }
   .page-header p { font-size: 0.9rem; }
 }
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: none; }
+  .card:hover { box-shadow: var(--shadow-card); }
+  .btn { transition: none; }
+}
